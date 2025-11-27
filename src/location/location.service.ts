@@ -29,8 +29,7 @@ export class LocationService {
       throw new Error('Character already owns a location');
     }
 
-    const locationEntity = this.locationRepository.create({ ...data, owner
-    });
+    const locationEntity = this.locationRepository.create({ ...data, owner: ownerEntity });
     await this.locationRepository.save(locationEntity);
     return locationEntity;
   }

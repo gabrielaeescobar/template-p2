@@ -32,7 +32,8 @@ export class CharactersService {
         if (!locationEntity) {
           throw new BadRequestException(`Location with id ${location} not found`);
         }
-        character.location = locationEntity.id;
+        // assign the Location entity (relation), not the id
+        character.location = locationEntity;
       }
 
       // character sin favoritos
@@ -89,16 +90,15 @@ export class CharactersService {
   }
 
 
-  findOne(id: number) {
+  async findOne(id: string) {
     try {
-      const character = this.characterRepository.findOneBy({id: String(id)});
+      const character = await this.characterRepository.findOneBy({ id });
 
       if (!character) {
         throw new Error('Character not found');
       }
       return character;
-    }
-    catch(error) {
+    } catch (error) {
       if (error.message === 'Character not found') throw error;
       throw new BadRequestException(error.message);
     }
@@ -115,23 +115,11 @@ export class CharactersService {
         return { taxDebt: 0 };
       }
 
-      let locationEntity: Location | null = null;
-      if (typeof character.location === 'string') {
-        locationEntity = await this.locationRepository.findOne({ where: { id: character.location } });
-      } else {
-        locationEntity = character.location as Location;
-      }
+      // character.location should be loaded as a Location (we requested relations)
+      const locationEntity = character.location as Location | null;
+      if (!locationEntity) return { taxDebt: 0 };
 
-      if (!locationEntity) {
-        return { taxDebt: 0 };
-      }
-      let coef = 0;
-      if (character.employee){
-        coef = 0.08;
-      }
-      else {
-        coef = 0.12;
-      }
+      const coef = character.employee ? 0.08 : 0.03;
       const taxDebt = locationEntity.cost * (1 + coef);
       return { taxDebt };
     } catch (error) {

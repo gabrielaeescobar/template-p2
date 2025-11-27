@@ -16,10 +16,10 @@ export class Character {
     @Column('boolean')
     employee: boolean;
 
-    @OneToOne(()=> Location, location => location.id)
-    location: string;
+    @OneToOne(()=> Location, location => location.owner)
+    location: Location;
 
-    @ManyToMany(() => Location)
+    @ManyToMany(() => Location, location => location.characters)
     @JoinTable({ name: 'character_favorites' })
     favorites: Location[];
 }

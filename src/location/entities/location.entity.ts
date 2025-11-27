@@ -17,8 +17,8 @@ export class Location {
 
     @OneToOne(() => Character, character => character.location)
     @JoinColumn()
-    owner:string;
+    owner: Character;
 
     @ManyToMany(() => Character, character => character.favorites)
-    characters: string[];
+    characters: Character[];
 }

@@ -17,7 +17,7 @@ export class Character {
     employee: boolean;
 
     @OneToOne(()=> Location, location => location.id)
-    location: Location;
+    location: string;
 
     @ManyToMany(() => Location)
     @JoinTable({ name: 'character_favorites' })

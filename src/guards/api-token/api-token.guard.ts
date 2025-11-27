@@ -1,15 +1,3 @@
-// import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-// import { Observable } from 'rxjs';
-
-// @Injectable()
-// export class ApiTokenGuard implements CanActivate {
-//   canActivate(
-//     context: ExecutionContext,
-//   ): boolean | Promise<boolean> | Observable<boolean> {
-//     return true;
-//   }
-// }
-
 import {
   CanActivate,
   ExecutionContext,
@@ -20,6 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Token } from 'src/tokens/entities/token.entity';
+import { TokensService } from 'src/tokens/tokens.service';
 import { Request } from 'express';
 
 @Injectable()
@@ -27,7 +16,8 @@ export class ApiTokenGuard implements CanActivate {
 
   constructor(
     @InjectRepository(Token)
-    private readonly keyRepository: Repository<Token>,
+    private readonly tokenRepository: Repository<Token>,
+    private readonly tokensService: TokensService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -40,20 +30,19 @@ export class ApiTokenGuard implements CanActivate {
       throw new UnauthorizedException('Missing api-token header');
     }
 
-    const key = await this.keyRepository.findOne({
+    const token = await this.tokenRepository.findOne({
       where: { token: apiToken, active: true }
     });
 
-    if (!key) {
+    if (!token) {
       throw new UnauthorizedException('Invalid API token');
     }
 
-    if (key.reqLeft <= 0) {
+    if (token.reqLeft <= 0) {
       throw new ForbiddenException('API token has no requests left');
     }
 
-    key.reqLeft -= 1;
-    await this.keyRepository.save(key);
+    await this.tokensService.patch(token.id);
 
     return true;
   }

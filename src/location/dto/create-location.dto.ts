@@ -12,7 +12,7 @@ export class CreateLocationDto {
 
     @IsOptional()
     @IsUUID()
-    owner?: string;
+    owner: string;
 
     @IsOptional()
     @IsArray()

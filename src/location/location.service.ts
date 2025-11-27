@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { CreateLocationDto } from './dto/create-location.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -29,14 +29,19 @@ export class LocationService {
       throw new Error('Character already owns a location');
     }
 
-    const locationEntity = this.locationRepository.create({ ...data, owner: ownerEntity, 
+    const locationEntity = this.locationRepository.create({ ...data, owner
     });
     await this.locationRepository.save(locationEntity);
     return locationEntity;
   }
 
-  findAll() {
-    return `This action returns all location`;
+  async findAll() {
+    try {
+      const locations = await this.locationRepository.find({ relations: ['owner', 'characters'] });
+      return locations;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 
   findOne(id: number) {

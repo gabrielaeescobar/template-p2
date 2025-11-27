@@ -42,23 +42,41 @@ export class TokensService {
     return `This action returns all tokens`;
   }
 
-  findOne(id: number) {
+  async findOne(id: number) {
     try {
-      const token = this.tokenRepository.findOneBy({id: String(id)});
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      const token = await this.tokenRepository.findOneBy({id: String(id)});
       if (!token) {
         throw new Error('Key not found');
       }
+      else if (token.reqLeft <= 0) {
+        throw new Error('Key has no requests left');
+      }
       return token;
-
-
     }
     catch(error) {
       if (error.message === 'Key not found') throw error;
       this.handleDBExceptions(error)
-
     }
-    return `This action returns a #${id} key`;  }
+  }
+
+  async patch(id: string) {
+    try {
+      const token = await this.tokenRepository.findOneBy({ id });
+
+      if (!token) {
+        throw new Error('Token not found');
+      }
+
+      token.reqLeft -= 1;
+      await this.tokenRepository.save(token);
+
+      return token;
+    } catch (error) {
+      if (error.message === 'Token not found') throw error;
+      this.handleDBExceptions(error);
+    }
+  }
+
 
   update(id: number, updateTokenDto: UpdateTokenDto) {
     return `This action updates a #${id} token`;
